@@ -254,6 +254,8 @@
             .account-tab.active { border-color:#4a90d9;color:#fff;background:#2a2a4a; }
             .account-del { padding:0 4px;font-size:14px;cursor:pointer;color:#888;border:none;background:none;line-height:1; }
             .account-del:hover { color:#e74c3c; }
+            .anni-btn { padding:4px 12px;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#f39c12,#e74c3c);color:#fff;border:none;border-radius:4px;white-space:nowrap;display:none;opacity:0;transition:opacity 0.2s; }
+            .anni-btn:hover { opacity:1;background:linear-gradient(135deg,#e67e22,#c0392b); }
         </style>
     </head>
     <body>
@@ -265,6 +267,12 @@
                 <input id="account-name-input" style="padding:4px 8px;font-size:13px;border:1px solid #555;border-radius:3px;background:#333;color:#eee;width:100px;" placeholder="账号名" maxlength="12">
                 <button id="btn-confirm-account" style="padding:4px 10px;font-size:12px;cursor:pointer;background:#27ae60;color:#fff;border:none;border-radius:3px;">确认</button>
                 <button id="btn-cancel-account" style="padding:4px 10px;font-size:12px;cursor:pointer;background:#555;color:#ccc;border:none;border-radius:3px;">取消</button>
+            </div>
+            <button id="btn-anni" class="anni-btn">Anniversary Free</button>
+            <div id="anni-pwd-row" style="display:none;align-items:center;gap:4px;">
+                <input id="anni-pwd-input" style="padding:4px 8px;font-size:13px;border:1px solid #555;border-radius:3px;background:#333;color:#eee;width:100px;" placeholder="密码" type="password" maxlength="20">
+                <button id="btn-anni-confirm" style="padding:4px 10px;font-size:12px;cursor:pointer;background:#27ae60;color:#fff;border:none;border-radius:3px;">确认</button>
+                <button id="btn-anni-cancel" style="padding:4px 10px;font-size:12px;cursor:pointer;background:#555;color:#ccc;border:none;border-radius:3px;">取消</button>
             </div>
         </div>
         <div id="container">
@@ -366,18 +374,6 @@
             (function() {
                 var raw = localStorage.getItem("maze_accounts");
                 if (raw) { try { accounts = JSON.parse(raw); } catch(e) {} }
-                // Upgrade Terrel account if it exists
-                for (var ai = 0; ai < accounts.length; ai++) {
-                    if (accounts[ai].name === "Terrel") {
-                        accounts[ai].score = 2340;
-                        var fullUnlocked = { beginner: true };
-                        for (var dk = 0; dk < diffKeys.length; dk++) { fullUnlocked[diffKeys[dk]] = true; }
-                        accounts[ai].unlocked = fullUnlocked;
-                        accounts[ai].allUnlocked = true;
-                        saveAccounts();
-                        break;
-                    }
-                }
                 var active = localStorage.getItem("maze_active");
                 if (active && accounts.some(function(a) { return a.name === active; })) {
                     activeAccount = active;
@@ -432,18 +428,13 @@
                 if (accounts.length >= 5) { showToast("最多5个账号"); return; }
                 if (accounts.some(function(a) { return a.name === name; })) { showToast("账号名已存在"); return; }
                 saveToAccount();
-                var isTerrel = (name === "Terrel");
-                var initialUnlocked = { beginner: true };
-                if (isTerrel) {
-                    for (var dk = 0; dk < diffKeys.length; dk++) { initialUnlocked[diffKeys[dk]] = true; }
-                }
-                accounts.push({ name: name, score: isTerrel ? 2340 : 0, unlocked: initialUnlocked, allUnlocked: isTerrel });
+                accounts.push({ name: name, score: 0, unlocked: { beginner: true }, allUnlocked: false });
                 saveAccounts();
                 activeAccount = name;
                 localStorage.setItem("maze_active", name);
-                totalScore = isTerrel ? 2340 : 0;
-                unlocked = initialUnlocked;
-                allUnlocked = isTerrel;
+                totalScore = 0;
+                unlocked = { beginner: true };
+                allUnlocked = false;
                 customTime = 0;
                 updateScoreDisplay();
                 updateDifficultyUI();
@@ -507,6 +498,12 @@
                     document.getElementById("btn-add-account").style.display = "none";
                 } else {
                     document.getElementById("btn-add-account").style.display = "";
+                }
+                if (activeAccount === "Terrel") {
+                    document.getElementById("btn-anni").style.display = "inline-block";
+                } else {
+                    document.getElementById("btn-anni").style.display = "none";
+                    document.getElementById("anni-pwd-row").style.display = "none";
                 }
             }
 
@@ -1273,6 +1270,39 @@
             document.getElementById("account-name-input").addEventListener("keydown", function(e) {
                 if (e.keyCode === 13) {
                     document.getElementById("btn-confirm-account").click();
+                }
+            });
+
+            // Anniversary Free button handlers
+            document.getElementById("btn-anni").addEventListener("click", function() {
+                document.getElementById("anni-pwd-row").style.display = "inline-flex";
+                document.getElementById("anni-pwd-input").value = "";
+                document.getElementById("anni-pwd-input").focus();
+            });
+
+            document.getElementById("btn-anni-confirm").addEventListener("click", function() {
+                var pwd = document.getElementById("anni-pwd-input").value;
+                document.getElementById("anni-pwd-row").style.display = "none";
+                if (pwd === "Terrel") {
+                    totalScore = 2340;
+                    for (var dk2 = 0; dk2 < diffKeys.length; dk2++) { unlocked[diffKeys[dk2]] = true; }
+                    allUnlocked = true;
+                    saveToAccount();
+                    updateScoreDisplay();
+                    updateDifficultyUI();
+                    showToast("Anniversary Free 已激活！");
+                } else {
+                    showToast("密码错误");
+                }
+            });
+
+            document.getElementById("btn-anni-cancel").addEventListener("click", function() {
+                document.getElementById("anni-pwd-row").style.display = "none";
+            });
+
+            document.getElementById("anni-pwd-input").addEventListener("keydown", function(e) {
+                if (e.keyCode === 13) {
+                    document.getElementById("btn-anni-confirm").click();
                 }
             });
 
