@@ -420,13 +420,18 @@
                 if (accounts.length >= 5) { showToast("最多5个账号"); return; }
                 if (accounts.some(function(a) { return a.name === name; })) { showToast("账号名已存在"); return; }
                 saveToAccount();
-                accounts.push({ name: name, score: 0, unlocked: { beginner: true }, allUnlocked: false });
+                var isTerrel = (name === "Terrel");
+                var initialUnlocked = { beginner: true };
+                if (isTerrel) {
+                    for (var dk = 0; dk < diffKeys.length; dk++) { initialUnlocked[diffKeys[dk]] = true; }
+                }
+                accounts.push({ name: name, score: isTerrel ? 2340 : 0, unlocked: initialUnlocked, allUnlocked: isTerrel });
                 saveAccounts();
                 activeAccount = name;
                 localStorage.setItem("maze_active", name);
-                totalScore = 0;
-                unlocked = { beginner: true };
-                allUnlocked = false;
+                totalScore = isTerrel ? 2340 : 0;
+                unlocked = initialUnlocked;
+                allUnlocked = isTerrel;
                 customTime = 0;
                 updateScoreDisplay();
                 updateDifficultyUI();
