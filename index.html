@@ -402,9 +402,7 @@
                     activeAccount = active;
                 }
                 anniActivated = localStorage.getItem("anni_activated") === "1";
-                if (anniActivated && activeAccount === "Terrel") {
-                    document.getElementById("rules-anni").style.display = "";
-                }
+                updateAnniRuleVisibility();
             })();
 
             function saveAccounts() {
@@ -528,14 +526,11 @@
                 }
                 if (activeAccount === "Terrel") {
                     document.getElementById("btn-anni").style.display = "inline-block";
-                    if (anniActivated) {
-                        document.getElementById("rules-anni").style.display = "";
-                    }
                 } else {
                     document.getElementById("btn-anni").style.display = "none";
                     document.getElementById("anni-pwd-row").style.display = "none";
-                    document.getElementById("rules-anni").style.display = "none";
                 }
+                updateAnniRuleVisibility();
             }
 
             var unlocked = {};
@@ -944,14 +939,25 @@
             function addScore(pts) {
                 totalScore = Math.max(0, totalScore + pts);
                 saveScore();
+                updateAnniRuleVisibility();
             }
 
-            document.getElementById("btn-reset-score").addEventListener("click", function() {
-                var prevScore = totalScore;
-                totalScore = 0;
-                saveScore();
-                actionHistory.push({type: "resetScore", prevScore: prevScore});
-                redoStack = [];
+            function updateAnniRuleVisibility() {
+                var el = document.getElementById("rules-anni");
+                if (activeAccount === "Terrel" && anniActivated && totalScore >= 2340) {
+                    el.style.display = "";
+                } else {
+                    el.style.display = "none";
+                }
+            }
+
+document.getElementById("btn-reset-score").addEventListener("click", function() {
+    var prevScore = totalScore;
+    totalScore = 0;
+    saveScore();
+    updateAnniRuleVisibility();
+    actionHistory.push({type: "resetScore", prevScore: prevScore});
+    redoStack = [];
                 showToast("分数已重置");
             });
 
@@ -963,27 +969,29 @@
                     x = action.from.x;
                     y = action.from.y;
                     draw();
-                } else if (action.type === "resetScore") {
-                    redoStack.push({type: "resetScore", prevScore: totalScore});
-                    totalScore = action.prevScore;
-                    saveScore();
-                }
+            } else if (action.type === "resetScore") {
+                redoStack.push({type: "resetScore", prevScore: totalScore});
+                totalScore = action.prevScore;
+                saveScore();
+                updateAnniRuleVisibility();
             }
+        }
 
-            function doRedo() {
-                if (won || redoStack.length === 0) return;
-                var action = redoStack.pop();
-                if (action.type === "move") {
-                    actionHistory.push({type: "move", from: {x: x, y: y}, to: action.to});
-                    x = action.to.x;
-                    y = action.to.y;
-                    draw();
-                } else if (action.type === "resetScore") {
-                    actionHistory.push({type: "resetScore", prevScore: totalScore});
-                    totalScore = action.prevScore;
-                    saveScore();
-                }
+        function doRedo() {
+            if (won || redoStack.length === 0) return;
+            var action = redoStack.pop();
+            if (action.type === "move") {
+                actionHistory.push({type: "move", from: {x: x, y: y}, to: action.to});
+                x = action.to.x;
+                y = action.to.y;
+                draw();
+            } else if (action.type === "resetScore") {
+                actionHistory.push({type: "resetScore", prevScore: totalScore});
+                totalScore = action.prevScore;
+                saveScore();
+                updateAnniRuleVisibility();
             }
+        }
 
             document.getElementById("btn-undo").addEventListener("click", doUndo);
             document.getElementById("btn-redo").addEventListener("click", doRedo);
@@ -1329,7 +1337,7 @@
                     updateDifficultyUI();
                     anniActivated = true;
                     localStorage.setItem("anni_activated", "1");
-                    document.getElementById("rules-anni").style.display = "";
+                    updateAnniRuleVisibility();
                     showToast("Anniversary Free 已激活！");
                 } else {
                     showToast("密码错误");
