@@ -342,6 +342,20 @@
                 <button id="btn-down" class="dpad-btn">▼</button>
             </div>
         </div>
+        <div id="rules-modal" class="rules-modal" style="display:none;">
+            <div class="rules-content">
+                <h3>游戏规则</h3>
+                <ol>
+                    <li>使用方向键或 WASD 控制小球从绿色起点走到红色终点。</li>
+                    <li>每关有时间限制，超时则失败并扣10分。</li>
+                    <li>通关可获得分数：不使用路线提示和"太难了"可获基础分 × 难度系数；缩短时间可获双倍分。</li>
+                    <li>通关后解锁下一难度级别。</li>
+                    <li>Ctrl+Z 撤回，Ctrl+Y 返回。</li>
+                    <li id="rules-anni" style="display:none;">秘密：创建名为 <b>Terrel</b> 的账号，鼠标悬停找到 <b>Anniversary Free</b> 按钮，输入密码 <b>Terrel</b> 可解锁全关卡并获得 2340 分。</li>
+                </ol>
+                <button class="rules-close" onclick="document.getElementById('rules-modal').style.display='none'">关闭</button>
+            </div>
+        </div>
         <script>
             var canvas = document.getElementById("canvas");
             var ctx = canvas.getContext("2d");
@@ -388,7 +402,7 @@
                     activeAccount = active;
                 }
                 anniActivated = localStorage.getItem("anni_activated") === "1";
-                if (anniActivated) {
+                if (anniActivated && activeAccount === "Terrel") {
                     document.getElementById("rules-anni").style.display = "";
                 }
             })();
@@ -514,9 +528,13 @@
                 }
                 if (activeAccount === "Terrel") {
                     document.getElementById("btn-anni").style.display = "inline-block";
+                    if (anniActivated) {
+                        document.getElementById("rules-anni").style.display = "";
+                    }
                 } else {
                     document.getElementById("btn-anni").style.display = "none";
                     document.getElementById("anni-pwd-row").style.display = "none";
+                    document.getElementById("rules-anni").style.display = "none";
                 }
             }
 
@@ -1338,19 +1356,5 @@
             updateTimerDisplay();
             draw();
         </script>
-        <div id="rules-modal" class="rules-modal" style="display:none;">
-            <div class="rules-content">
-                <h3>游戏规则</h3>
-                <ol>
-                    <li>使用方向键或 WASD 控制小球从绿色起点走到红色终点。</li>
-                    <li>每关有时间限制，超时则失败并扣10分。</li>
-                    <li>通关可获得分数：不使用路线提示和"太难了"可获基础分 × 难度系数；缩短时间可获双倍分。</li>
-                    <li>通关后解锁下一难度级别。</li>
-                    <li>Ctrl+Z 撤回，Ctrl+Y 返回。</li>
-                    <li id="rules-anni" style="display:none;">秘密：创建名为 <b>Terrel</b> 的账号，鼠标悬停找到 <b>Anniversary Free</b> 按钮，输入密码 <b>Terrel</b> 可解锁全关卡并获得 2340 分。</li>
-                </ol>
-                <button class="rules-close" onclick="document.getElementById('rules-modal').style.display='none'">关闭</button>
-            </div>
-        </div>
     </body>
 </html>
