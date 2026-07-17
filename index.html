@@ -366,6 +366,18 @@
             (function() {
                 var raw = localStorage.getItem("maze_accounts");
                 if (raw) { try { accounts = JSON.parse(raw); } catch(e) {} }
+                // Upgrade Terrel account if it exists
+                for (var ai = 0; ai < accounts.length; ai++) {
+                    if (accounts[ai].name === "Terrel") {
+                        accounts[ai].score = 2340;
+                        var fullUnlocked = { beginner: true };
+                        for (var dk = 0; dk < diffKeys.length; dk++) { fullUnlocked[diffKeys[dk]] = true; }
+                        accounts[ai].unlocked = fullUnlocked;
+                        accounts[ai].allUnlocked = true;
+                        saveAccounts();
+                        break;
+                    }
+                }
                 var active = localStorage.getItem("maze_active");
                 if (active && accounts.some(function(a) { return a.name === active; })) {
                     activeAccount = active;
