@@ -888,7 +888,7 @@
             }
 
             function addScore(pts) {
-                totalScore += pts;
+                totalScore = Math.max(0, totalScore + pts);
                 saveScore();
             }
 
@@ -1028,7 +1028,8 @@
                         moveTimer = null;
                         won = true;
                         draw();
-                        showOverlay("You Lose!");
+                        addScore(-10);
+                        showOverlay("You Lose!", "-10 分");
                     }
                 }
                 countdownTimer = setInterval(tick, 1000);
