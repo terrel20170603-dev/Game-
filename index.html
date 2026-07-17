@@ -256,6 +256,14 @@
             .account-del:hover { color:#e74c3c; }
             .anni-btn { padding:4px 12px;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#f39c12,#e74c3c);color:#fff;border:none;border-radius:4px;white-space:nowrap;display:none;opacity:0;transition:opacity 0.2s; }
             .anni-btn:hover { opacity:1;background:linear-gradient(135deg,#e67e22,#c0392b); }
+            .rules-btn { padding:4px 12px;font-size:12px;cursor:pointer;background:#555;color:#ccc;border:none;border-radius:4px;white-space:nowrap; }
+            .rules-btn:hover { background:#666;color:#fff; }
+            .rules-modal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1001; }
+            .rules-content { background:#1a1a2e;color:#eee;padding:24px 32px;border-radius:12px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;font-size:14px;line-height:1.8; }
+            .rules-content h3 { margin:0 0 12px 0;font-size:20px;color:#f1c40f; }
+            .rules-content li { margin-bottom:6px; }
+            .rules-close { margin-top:16px;padding:8px 24px;font-size:14px;cursor:pointer;background:#4a90d9;color:#fff;border:none;border-radius:6px; }
+            .rules-close:hover { background:#357abd; }
         </style>
     </head>
     <body>
@@ -279,6 +287,7 @@
             <div>
                 <button id="btn-path" class="btn">查看路线</button>
                 <button id="btn-reset" class="btn">重新生成</button>
+                <button id="btn-rules" class="rules-btn">规则</button>
                 <button id="btn-unlock">解锁所有级别</button>
                 <div class="time-row">
                     <div id="timer">∞</div>
@@ -367,9 +376,9 @@
 
             var diffKeys = Object.keys(difficulties);
 
-            // === ACCOUNT MANAGEMENT ===
             var accounts = [];
             var activeAccount = null;
+            var anniActivated = false;
 
             (function() {
                 var raw = localStorage.getItem("maze_accounts");
@@ -377,6 +386,10 @@
                 var active = localStorage.getItem("maze_active");
                 if (active && accounts.some(function(a) { return a.name === active; })) {
                     activeAccount = active;
+                }
+                anniActivated = localStorage.getItem("anni_activated") === "1";
+                if (anniActivated) {
+                    document.getElementById("rules-anni").style.display = "";
                 }
             })();
 
@@ -511,7 +524,6 @@
             var allUnlocked = false;
             var savedUnlocked = null;
 
-            // Load data from active account
             if (activeAccount) {
                 var initAcct = findAccount(activeAccount);
                 if (initAcct) {
@@ -847,6 +859,16 @@
                 }
             });
 
+            document.getElementById("btn-rules").addEventListener("click", function() {
+                document.getElementById("rules-modal").style.display = "flex";
+            });
+
+            document.getElementById("rules-modal").addEventListener("click", function(e) {
+                if (e.target === this) {
+                    this.style.display = "none";
+                }
+            });
+
             document.getElementById("btn-path").addEventListener("click", function() {
                 showPath = !showPath;
                 if (showPath) {
@@ -878,8 +900,8 @@
             var timeLimit = 0;
             var timeLeft = 0;
             var countdownTimer = null;
-            var customTime = 0; // 0 means use formula
-            var changeMode = null; // "harder" or "easier"
+            var customTime = 0;
+            var changeMode = null;
 
             if (typeof totalScore === 'undefined') var totalScore = 0;
             var usedPathHint = false;
@@ -1112,7 +1134,6 @@
 
             document.addEventListener("keydown", function(e) {
                 if (won) return;
-                // Ctrl+Z = undo, Ctrl+Y = redo
                 if (e.ctrlKey && e.keyCode === 90) { e.preventDefault(); doUndo(); return; }
                 if (e.ctrlKey && e.keyCode === 89) { e.preventDefault(); doRedo(); return; }
                 var kc = e.keyCode;
@@ -1249,7 +1270,6 @@
                 resetGame();
             });
 
-            // Account button handlers
             document.getElementById("btn-add-account").addEventListener("click", function() {
                 document.getElementById("account-input-row").style.display = "inline-flex";
                 document.getElementById("account-name-input").value = "";
@@ -1273,7 +1293,6 @@
                 }
             });
 
-            // Anniversary Free button handlers
             document.getElementById("btn-anni").addEventListener("click", function() {
                 document.getElementById("anni-pwd-row").style.display = "inline-flex";
                 document.getElementById("anni-pwd-input").value = "";
@@ -1290,6 +1309,9 @@
                     saveToAccount();
                     updateScoreDisplay();
                     updateDifficultyUI();
+                    anniActivated = true;
+                    localStorage.setItem("anni_activated", "1");
+                    document.getElementById("rules-anni").style.display = "";
                     showToast("Anniversary Free 已激活！");
                 } else {
                     showToast("密码错误");
@@ -1316,5 +1338,19 @@
             updateTimerDisplay();
             draw();
         </script>
+        <div id="rules-modal" class="rules-modal" style="display:none;">
+            <div class="rules-content">
+                <h3>游戏规则</h3>
+                <ol>
+                    <li>使用方向键或 WASD 控制小球从绿色起点走到红色终点。</li>
+                    <li>每关有时间限制，超时则失败并扣10分。</li>
+                    <li>通关可获得分数：不使用路线提示和"太难了"可获基础分 × 难度系数；缩短时间可获双倍分。</li>
+                    <li>通关后解锁下一难度级别。</li>
+                    <li>Ctrl+Z 撤回，Ctrl+Y 返回。</li>
+                    <li id="rules-anni" style="display:none;">秘密：创建名为 <b>Terrel</b> 的账号，鼠标悬停找到 <b>Anniversary Free</b> 按钮，输入密码 <b>Terrel</b> 可解锁全关卡并获得 2340 分。</li>
+                </ol>
+                <button class="rules-close" onclick="document.getElementById('rules-modal').style.display='none'">关闭</button>
+            </div>
+        </div>
     </body>
 </html>
