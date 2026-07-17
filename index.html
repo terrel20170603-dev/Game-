@@ -233,6 +233,8 @@
             }
             .ol-btn-retry { background: #e07b3c; }
             .ol-btn-retry:hover { background: #c06830; }
+            .ol-btn-next { background: #27ae60; }
+            .ol-btn-next:hover { background: #1e8449; }
             .ol-btn-ok { background: #4a90d9; }
             .ol-btn-ok:hover { background: #357abd; }
             .move-ctrl-btn {
@@ -941,7 +943,7 @@
                 return (idx + 1) * 10;
             }
 
-            function showOverlay(msg, scoreText) {
+            function showOverlay(msg, scoreText, nextDiff) {
                 var overlay = document.getElementById("overlay");
                 if (!overlay) {
                     overlay = document.createElement("div");
@@ -956,13 +958,15 @@
                 }
                 var inner = document.createElement("div");
                 inner.style.cssText = "background:#1a1a2e;color:#eee;padding:30px 40px;border-radius:12px;text-align:center;font-size:18px;max-width:360px;";
+                var buttonsHtml = "<div style='margin-top:12px;display:flex;gap:8px;justify-content:center;'>"
+                    + "<button class='ol-btn ol-btn-retry'>重来</button>"
+                    + (nextDiff ? "<button class='ol-btn ol-btn-next'>下一关</button>" : "")
+                    + "<button class='ol-btn ol-btn-ok'>确定</button>"
+                    + "</div>";
                 inner.innerHTML = "<div style='font-size:28px;font-weight:bold;margin-bottom:12px;'>" + msg + "</div>"
                     + (scoreText ? "<div style='color:#f1c40f;margin-bottom:8px;'>" + scoreText + "</div>" : "")
                     + "<div style='margin-bottom:6px;color:#aaa;'>总分: " + totalScore + " 分</div>"
-                    + "<div style='margin-top:12px;display:flex;gap:8px;justify-content:center;'>"
-                    + "<button class='ol-btn ol-btn-retry'>重来</button>"
-                    + "<button class='ol-btn ol-btn-ok'>确定</button>"
-                    + "</div>";
+                    + buttonsHtml;
                 overlay.innerHTML = "";
                 overlay.appendChild(inner);
                 overlay.style.display = "flex";
@@ -970,6 +974,13 @@
                     overlay.style.display = "none";
                     resetGame();
                 });
+                if (nextDiff) {
+                    inner.querySelector(".ol-btn-next").addEventListener("click", function() {
+                        overlay.style.display = "none";
+                        changeDifficulty(nextDiff);
+                        resetGame();
+                    });
+                }
                 inner.querySelector(".ol-btn-ok").addEventListener("click", function() {
                     overlay.style.display = "none";
                 });
@@ -1076,9 +1087,9 @@
                     }
                     if (next && !isUnlocked(next)) {
                         unlockLevel(next);
-                        showOverlay(msg, scoreText + (scoreText ? " | " : "") + "已解锁: " + document.getElementById("diff-" + next).textContent);
+                        showOverlay(msg, scoreText + (scoreText ? " | " : "") + "已解锁: " + document.getElementById("diff-" + next).textContent, next);
                     } else {
-                        showOverlay(msg, scoreText);
+                        showOverlay(msg, scoreText, next);
                     }
                 }
                 draw();
